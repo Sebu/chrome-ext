@@ -1,0 +1,38 @@
+
+<html>
+<head>
+<script src="jquery.js"></script> 
+<script type="text/javascript">
+
+var api_url = "http://" + localStorage["host"] + ":" + localStorage["port"] + "/transmission/rpc";
+var session_id = null;
+
+function get_session_id() {
+  var req = new XMLHttpRequest();
+  req.open("POST", api_url, true);
+  req.onload = function() {
+    session_id = req.getResponseHeader('X-Transmission-Session-Id');
+  } 
+  req.send();
+}
+
+function transmission_request(data, func) {
+  var req = new XMLHttpRequest();
+  req.open("POST", api_url, true);
+  req.onload = function() { func(req); }
+  req.setRequestHeader("X-Transmission-Session-Id",  session_id);
+  req.setRequestHeader("Content-Type", "text/json");
+  req.send( data );
+
+}
+
+
+
+get_session_id();
+
+
+</script>
+</head>
+<body>
+</body>
+</html>

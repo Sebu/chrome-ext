@@ -1,0 +1,43 @@
+<style>
+body {
+  min-width:757px;
+  overflow-x:hidden;
+}
+</style>
+
+<script src="jquery.js"></script> 
+<script type="text/javascript">
+var bg = chrome.extension.getBackgroundPage();
+
+function list_torrents(res){
+   tors = JSON.parse(res.responseText).arguments.torrents;
+//   document.write(location.hostname);
+   for (var i = 0; tors.length > i; i++) {
+     var ele = document.createElement("div");
+     ele.innerHTML = Math.round(tors[i].percentDone*100) + "% <div id='TID" + tors[i].id + "'>"  + Math.round(tors[i].rateDownload/1024) + "KB/s </div>" + tors[i].name;
+     document.body.appendChild(ele);
+   }
+
+}
+
+
+function torrents_update(res){
+   tors = JSON.parse(res.responseText).arguments.torrents;
+//   document.write(location.hostname);
+   for (var i = 0; tors.length > i; i++) {
+     $("#TID"+tors[i].id).innerHTML = Math.round(tors[i].rateDownload/1024) + "KB/s";
+     console.log = "DSDDF";
+   }
+}
+
+function update_request() {
+  bg.transmission_request('{ "arguments": { "fields": [ "id",  "rateDownload" ]  }, "method": "torrent-get" }', torrents_update);
+}
+bg.transmission_request('{ "arguments": { "fields": [ "id", "name", "rateDownload", "percentDone" ]  }, "method": "torrent-get" }', list_torrents);
+
+
+
+window.setTimeout(startRequest, pollInterval);
+
+</script>
+
