@@ -1,13 +1,21 @@
 {
   "name": "auto transmission",
   "version": "0.1",
-  "description": "send .torrent files directly to my transmission daemon",
+  "description": "send .torrent files directly to your transmission daemon",
   "background_page": "background.html",
   "options_page": "options.html",
   "browser_action": {
     "default_icon": "images/transmission.jpg", // required
-    "default_title": "Transmission",      // optional; shown in tooltip
+    "default_title": "auto Transmission",      // optional; shown in tooltip
     "popup": "popup.html"                // optional
   },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*"],
+      "js": ["jquery.js", "linker.js"]
+    }
+  ],
   "permissions": [ "http://*/" ]
+
+
 }

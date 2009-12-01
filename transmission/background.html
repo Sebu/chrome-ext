@@ -4,32 +4,67 @@
 <script src="jquery.js"></script> 
 <script type="text/javascript">
 
-var api_url = "http://" + localStorage["host"] + ":" + localStorage["port"] + "/transmission/rpc";
-var session_id = null;
 
-function get_session_id() {
-  var req = new XMLHttpRequest();
-  req.open("POST", api_url, true);
-  req.onload = function() {
-    session_id = req.getResponseHeader('X-Transmission-Session-Id');
-  } 
-  req.send();
-}
+
+const STATUS_NORMAL = [155, 200, 180, 255];
+const STATUS_GOOD = [0, 255, 0, 255];
+const UPDATE_RATE = 3000;
+
+const api_url = "http://" + localStorage["host"] + ":" + localStorage["port"] + "/transmission/rpc";
+
+var session_id = null;
 
 function transmission_request(data, func) {
   var req = new XMLHttpRequest();
   req.open("POST", api_url, true);
-  req.onload = function() { func(req); }
+  req.onload = function() { 
+    if (null != req.getResponseHeader('X-Transmission-Session-Id')) {
+      session_id = req.getResponseHeader('X-Transmission-Session-Id');
+      transmission_request(data,func); // resend
+    } else {
+      func(req); 
+    }
+  }
   req.setRequestHeader("X-Transmission-Session-Id",  session_id);
   req.setRequestHeader("Content-Type", "text/json");
-  req.send( data );
+  
+  req.send( JSON.stringify(data) );
 
+}
+
+function update_badge(res) {
+  var data = JSON.parse(res.responseText);
+  var speed = Math.round(data.arguments.downloadSpeed/1024);
+  chrome.browserAction.setBadgeBackgroundColor({color: STATUS_NORMAL });
+  chrome.browserAction.setBadgeText({text: speed.toString()});
+  update_badge_request();
+}
+
+function update_badge_request() {
+  window.setTimeout(function() {
+    transmission_request({ method: "session-stats" }, update_badge);
+  }, UPDATE_RATE);
 }
 
 
 
-get_session_id();
+function torrent_add(url,response) {
+  transmission_request({ arguments: { filename:  url  }, method: "torrent-add" }, response);
+}
 
+function torrent_accepted(res){
+  chrome.browserAction.setBadgeBackgroundColor({color: STATUS_GOOD });
+  chrome.browserAction.setBadgeText({text: ":D"});
+}
+
+chrome.extension.onRequest.addListener(
+  function(request, sender, sendResponse) {
+    torrent_add(request.torrent_url, torrent_accepted);
+  });
+
+chrome.browserAction.setBadgeBackgroundColor({color: STATUS_NORMAL });
+chrome.browserAction.setBadgeText({text: "?"});
+update_badge_request();
 
 </script>
 </head>

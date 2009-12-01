@@ -15,12 +15,8 @@ function save_options() {
   }, 750);
 }
 
-// Restores select box state to saved value from localStorage.
 function restore_options() {
-//  var host = localStorage["host"] | "localhost";
-//  if (!favorite) {
-//    return;
-//  }
+
   document.getElementById("host").value = localStorage["host"];
   document.getElementById("port").value = localStorage["port"];
 }
